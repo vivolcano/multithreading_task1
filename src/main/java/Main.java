@@ -1,27 +1,26 @@
+import java.util.concurrent.*;
+
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
 
-        ThreadGroup threadGroup = new ThreadGroup("Main Thread Group");
+        ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-        Thread thread1 = new MyThread(threadGroup, "first thread");
-        Thread thread2 = new MyThread(threadGroup, "second thread");
-        Thread thread3 = new MyThread(threadGroup, "third thread");
-        Thread thread4 = new MyThread(threadGroup, "fourth thread");
+        Future<Integer> task1 = newThreadWithCallable("First Callable", threadPool);
+        Future<Integer> task2 = newThreadWithCallable("Second Callable", threadPool);
+        Future<Integer> task3 = newThreadWithCallable("Third Callable", threadPool);
+        Future<Integer> task4 = newThreadWithCallable("Fourth Callable", threadPool);
 
-        startThreads(thread1, thread2, thread3, thread4);
+        System.out.println("Кол-во вызовов task1 = " + task1.get());
+        System.out.println("Кол-во вызовов task2 = " + task2.get());
+        System.out.println("Кол-во вызовов task3 = " + task3.get());
+        System.out.println("Кол-во вызовов task4 = " + task4.get());
 
-        try {
-            Thread.sleep(15_000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        threadGroup.interrupt();
+        threadPool.shutdown();
     }
 
-    private static void startThreads(Thread... threads) {
-        for (Thread thread : threads) {
-            thread.start();
-        }
+    private static Future<Integer> newThreadWithCallable(String name, ExecutorService threadPool) {
+        MyCallable callable = new MyCallable(name);
+        Future<Integer> integerFutureTask = threadPool.submit(callable);
+        return integerFutureTask;
     }
 }
